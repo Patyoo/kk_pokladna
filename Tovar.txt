@@ -1,0 +1,6 @@
+5
+300;Jablko
+301;Visna
+302;Ceresna
+303;Hruska
+300;Ribezla
