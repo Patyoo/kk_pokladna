@@ -13,6 +13,8 @@ type
 
   TForm1 = class(TForm)
     Button1: TButton;
+    Button2: TButton;
+    Label1: TLabel;
     ListBox1: TListBox;
     Memo1: TMemo;
     procedure FormCreate(Sender: TObject);
