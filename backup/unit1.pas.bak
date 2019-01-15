@@ -87,6 +87,13 @@ begin
  // pozicia:=POS(';',slovo);
  // poleCena[i]:=StrToFloat(COPY(slovo,pozicia+1,length(slovo)));
  // ListBox1.Items.Add(FloatToStr(poleCena[i]));
+  // readln(subor,slovo);
+ // pozicia:=POS(';',slovo);
+  //poleKod[i]:=StrToInt(COPY(slovo,1,pozicia-1));
+  //slovo:=COPY(slovo,pozicia+1,length(slovo));
+ // pozicia:=POS(';',slovo);
+ // poleCena[i]:=StrToFloat(COPY(slovo,pozicia+1,length(slovo)));
+ // ListBox1.Items.Add(FloatToStr(poleCena[i]));
   end;
   closeFile(subor);
 
