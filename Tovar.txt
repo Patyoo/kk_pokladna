@@ -1,6 +1,6 @@
-5
-300;Jablko
-301;Visna
-302;Ceresna
-303;Hruska
-300;Ribezla
+4
+100;Jablko
+101;Visna
+102;Ceresna
+103;Hruska
+
