@@ -30,8 +30,9 @@ object Form1: TForm1
     Left = 24
     Height = 25
     Top = 248
-    Width = 176
+    Width = 128
     Caption = 'Vyhladať kód tovaru'
+    OnClick = Button2Click
     TabOrder = 2
   end
   object Label1: TLabel
@@ -133,5 +134,18 @@ object Form1: TForm1
       'Memo1'
     )
     TabOrder = 9
+  end
+  object Label6: TLabel
+    Left = 576
+    Height = 15
+    Top = 24
+    Width = 34
+    Caption = 'Label6'
+    ParentColor = False
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    left = 249
+    top = 369
   end
 end
