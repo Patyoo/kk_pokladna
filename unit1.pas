@@ -30,6 +30,7 @@ type
     ListBox2: TListBox;
     Memo1: TMemo;
     Timer1: TTimer;
+    Timer2: TTimer;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure Button7Click(Sender: TObject);
@@ -38,6 +39,9 @@ type
     procedure ListBox1Click(Sender: TObject);
     procedure ListBox2Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
+    procedure Timer2Timer(Sender: TObject);
+    procedure Vypis();
+    procedure Odsadenie(x:integer);
   private
     { private declarations }
   public
@@ -47,7 +51,7 @@ const N=100;
 var
   Form1: TForm1;
   myDate,today : TDateTime;
-  CurrentTime,meno:string;
+  CurrentTime,meno,medzera:string;
   subor,subor2:TextFile;
   celkovySucet:real;
   pocet,pocetVybranych,verzia:integer;
@@ -55,6 +59,7 @@ var
   poleMnozstvo:array[1..N] of integer;
   poleTovar:array[1..N] of String;
   poleCena:array[1..N] of real;
+  poleKategorie:array[1..4] of String;
 
   poleVybraneKod:array[1..N] of integer;
   poleVybraneTovar:array[1..N] of string;
@@ -78,6 +83,7 @@ begin
    pocetVybranych:=0;
    verzia:=0;
 
+
    {AssignFile(subor2, 'STATISTIKY_'+IntToStr(verzia)+'.txt');
    Rewrite(subor2);
    DeleteFile('STATISTIKY_'+IntToStr(verzia)+'.txt');
@@ -88,6 +94,24 @@ begin
  While(meno='') DO meno:= inputbox('Prosím zadajte meno pokladníka', 'Vaše meno:', '');
  Label1.caption:='Meno pokladníka: '+meno;
  }
+
+
+
+
+
+
+
+ assignFile(subor,'Kategorie.txt');
+ reset(subor);
+ FOR i:=1 to 4 DO
+ begin
+ Readln(subor,poleKategorie[i]);
+ end;
+ closeFile(subor);
+ Button3.Caption:=poleKategorie[1];
+  Button4.Caption:=poleKategorie[2];
+   Button5.Caption:=poleKategorie[3];
+    Button6.Caption:=poleKategorie[4];
 
 
   assignFile(subor,'Tovar.txt');
@@ -127,20 +151,17 @@ begin
     FOR y:=1 to pocet DO IF(pomocna=poleKod[y]) THEN pomocna:=y;
   slovo:=COPY(slovo,pozicia+1,length(slovo));
   pozicia:=POS(';',slovo);
-  poleCena[pomocna]:=StrToFloat(COPY(slovo,pozicia+1,length(slovo)));
+  poleCena[pomocna]:=StrToFloat(COPY(slovo,pozicia+1,length(slovo))) /100;
   end;
   closeFile(subor);
 
    FOR i:=1 to pocet DO
-   ListBox1.Items.Add(poleTovar[i]+' '+IntToStr(poleKod[i]));
+   begin
+   Odsadenie(25-length(poleTovar[i]));
+   ListBox1.Items.Add(poleTovar[i]+medzera+IntToStr(poleKod[i]));
+   end;
+ end;
 
-
-
-
-
-
-
-end;
 
 procedure TForm1.Button7Click(Sender: TObject);
 var i:integer;
@@ -159,6 +180,8 @@ begin
        celkovySucet:=0;
        Label5.caption:=FloatToStr(celkovySucet)+'$';
        listbox2.Items.Clear();
+       Label5.Font.Color:=clRed;
+       Timer2.enabled:=true;
     end
   else
     exit;
@@ -187,7 +210,7 @@ begin
            assignFile(subor,'Statistiky.txt');
            append(subor);
            FOR i:=1 to pocetVybranych DO
-           Writeln(subor,c+';'+IntToStr(id)+';'+IntToStr(poleVybraneKod[i])+';'+IntTOStr(poleVybraneMnozstvo[i])+';'+FloatToStr(poleVybraneCena[i])+';'+CurrentTime);
+           Writeln(subor,c+';'+IntToStr(id)+';'+IntToStr(poleVybraneKod[i])+';'+IntTOStr(poleVybraneMnozstvo[i])+';'+FloatToStr(poleVybraneCena[i]* 100) +';'+CurrentTime);
            closeFile(subor);
            closeFile(subor2);
            DeleteFile('STATISTIKY_'+IntToStr(verzia)+'.txt');
@@ -223,45 +246,105 @@ end;
 
 procedure TForm1.Button2Click(Sender: TObject);
 var answer,answer2:string;
-  hladanyKod,i,mnozstvo:integer;
+  hladanyKod,i,y,mnozstvo,pom:integer;
+  opakovane,najdene:boolean;
 begin
+
+   najdene:=false;
+   opakovane:=false;
 
 
    IF InputQuery('Zadajte prosím hladaný kód','Váš kód:',Answer) = True then
      begin
-       hladanyKod:=StrToInt(answer);
+       hladanyKod:=StrToInt(Answer);
        FOR i:=1 to pocet DO
        begin
          IF(poleKod[i]=hladanyKod) THEN
          begin
+           najdene:=true;
            if InputQuery('Zadajte prosím množstvo','Vaše požadované množstvo',Answer2) = True then
            begin
+
+
+             FOR y:=1 to pocetVybranych DO
+              IF(poleVybraneKod[y]=hladanyKod) THEN
+               begin
+               opakovane:=true;
+               pom:=y;
+               end;
+
+
+
+
              mnozstvo:=StrToInt(answer2);
+             celkovySucet:=celkovySucet+(mnozstvo*poleCena[i]);
+
+
+
+
+             IF(opakovane=true) THEN
+              begin
+              poleVybraneMnozstvo[pom]:=poleVybraneMnozstvo[pom]+mnozstvo;
+              ListBox2.Items[pom-1] := poleVybraneTovar[pom]+' Množstvo:'+IntToStr(poleVybraneMnozstvo[pom])+' Cena za kus:'+FloatToStr(poleVybraneCena[pom])+' (Celkovo:'+FloatToStr(poleVybraneMnozstvo[pom]*poleVybraneCena[pom])+')';
+              Label5.caption:=FormatFloat('0.##',(celkovySucet))+'$';
+              Label5.Font.Color:=clGreen;
+              Timer2.enabled:=true;
+              end
+
+             else
+             begin
+
              inc(pocetVybranych);
              poleVybraneKod[pocetVybranych]:=poleKod[i];
              poleVybraneTovar[pocetVybranych]:=poleTovar[i];
              poleVybraneMnozstvo[pocetVybranych]:=poleMnozstvo[i];
              poleVybraneCena[pocetVybranych]:=poleCena[i];
-             celkovySucet:=celkovySucet+(mnozstvo*poleCena[i]);
+             Label5.caption:=FormatFloat('0.##',(celkovySucet))+'$';
              poleMnozstvo[i]:=mnozstvo;
              ListBox2.Items.Add( poleTovar[i]+' Množstvo:'+IntToStr(mnozstvo)+' Cena za kus'+FloatToStr(poleCena[i])+'(Celkovo:'+FloatToStr(mnozstvo*poleCena[i])+')');
-             Label5.caption:=FloatToStr(celkovySucet)+'$';
              exit;
+             Label5.Font.Color:=clGreen;
+             Timer2.enabled:=true;
+
+             end;
+
+
+
+
+
+
+
            end
            else exit;
-         end
-         else
-         begin
-           showmessage('Vaše kód sa nezhoduje so žiadnym tovarom');
+         end;
+
+
+
+       end;
+
+      IF(najdene=false) THEN
+       begin
+           showmessage('Vaš kód sa nezhoduje so žiadnym tovarom');
            exit;
          end;
-       end;
+
+
+
      end
+
+
+
+
+
+
+
    ELSE
    exit;
 
   //Vyhladat kod tovaru a pridat mnozstvo
 end;
+
+
 
 procedure TForm1.getDate();
 begin
@@ -272,11 +355,12 @@ begin
 end;
 
 procedure TForm1.ListBox1Click(Sender: TObject);
-var ItemIndex,mnozstvo:integer;
+var ItemIndex,mnozstvo,i,pom:integer;
   ItemIndexText,answer:string;
+  opakovane:boolean;
 begin
 
-
+  opakovane:=false;
 
  if((ListBox1.Items.count>0) AND (ListBox1.ItemIndex > -1)) then
   begin
@@ -285,20 +369,53 @@ begin
     else exit;
 
   ItemIndex := ListBox1.ItemIndex;
-  ItemIndexText:=ListBox1.Items[ListBox1.ItemIndex];
   celkovySucet:=celkovySucet+(mnozstvo*poleCena[ItemIndex+1]);
   poleMnozstvo[ItemIndex+1]:=mnozstvo;
-  ListBox2.Items.Add( poleTovar[ItemIndex+1]+' Množstvo:'+IntToStr(mnozstvo)+' Cena za kus:'+FloatToStr(poleCena[ItemIndex+1])+' (Celkovo:'+FloatToStr(mnozstvo*poleCena[ItemIndex+1])+')');
-  Label5.caption:=FloatToStr(celkovySucet)+'$';
+  Label5.caption:=FormatFloat('0.##',(celkovySucet))+'$';
 
-  inc(pocetVybranych);
-  poleVybraneKod[pocetVybranych]:=poleKod[ItemIndex+1];
-  poleVybraneTovar[pocetVybranych]:=poleTovar[Itemindex+1];
-  poleVybraneMnozstvo[pocetVybranych]:=poleMnozstvo[ItemIndex+1];
-  poleVybraneCena[pocetVybranych]:=poleCena[ItemIndex+1];
-  Memo1.append(IntToStr(poleVybraneKod[pocetVybranych])+' '+IntToStr(poleVybraneMnozstvo[pocetVybranych])+' '+FloatToStr(poleVybraneCena[pocetVybranych]));
+
+
+  FOR i:=1 to pocetVybranych DO
+  IF(poleVybraneKod[i]=poleKod[ItemIndex+1]) THEN
+   begin
+   opakovane:=true;
+   pom:=i;
+   end;
+
+
+    IF(opakovane=true) THEN
+     begin
+     poleVybraneMnozstvo[pom]:=poleVybraneMnozstvo[pom]+mnozstvo;          //zmenim i na pom
+     ListBox2.Items[pom-1] := poleVybraneTovar[pom]+' Množstvo:'+IntToStr(poleVybraneMnozstvo[pom])+' Cena za kus:'+FloatToStr(poleVybraneCena[pom])+' (Celkovo:'+FloatToStr(poleVybraneMnozstvo[pom]*poleVybraneCena[pom])+')';
+     Label5.Font.Color:=clGreen;
+ Timer2.enabled:=true;
+     end
+
+     ELSE
+        begin
+        ListBox2.Items.Add( poleTovar[ItemIndex+1]+' Množstvo:'+IntToStr(poleMnozstvo[ItemIndex+1])+' Cena za kus:'+FloatToStr(poleCena[ItemIndex+1])+' (Celkovo:'+FloatToStr(poleMnozstvo[ItemIndex+1]*poleCena[ItemIndex+1])+')');
+        inc(pocetVybranych);
+        poleVybraneKod[pocetVybranych]:=poleKod[ItemIndex+1];
+        poleVybraneTovar[pocetVybranych]:=poleTovar[Itemindex+1];
+        poleVybraneMnozstvo[pocetVybranych]:=poleMnozstvo[ItemIndex+1];
+        poleVybraneCena[pocetVybranych]:=poleCena[ItemIndex+1];
+        Memo1.append(IntToStr(poleVybraneKod[pocetVybranych])+' '+IntToStr(poleVybraneMnozstvo[pocetVybranych])+' '+FloatToStr(poleVybraneCena[pocetVybranych]));
+        Label5.Font.Color:=clGreen;
+        Timer2.enabled:=true;
+        end;
+
+
+
+
+
+
+
+        //ItemIndexText:=ListBox1.Items[ListBox1.ItemIndex];
+
+
 
   ListBox1.ItemIndex:=-1;
+  Vypis();
 
   end;
 end;
@@ -314,15 +431,21 @@ begin
   if InputQuery('Zadajte prosím nové množstvo','Vaše zbrusunové množstvo',Answer) = True then mnozstvo:=StrToInt(answer)
     else exit;
 
+
   ItemIndex := ListBox2.ItemIndex;
-  ItemIndexText:=ListBox2.Items[ListBox2.ItemIndex];
+  //IF(mnozstvo)
+
+
   celkovySucet:=celkovySucet+ (mnozstvo*poleVybraneCena[ItemIndex+1]) -poleVybraneMnozstvo[ItemIndex+1]*poleVybraneCena[ItemIndex+1];
   poleVybraneMnozstvo[ItemIndex+1]:=mnozstvo;
   ListBox2.Items.Delete (ItemIndex);
-  ListBox2.Items.Add( poleTovar[ItemIndex+1]+' Množstvo:'+IntToStr(mnozstvo)+' Cena za kus'+FloatToStr(poleCena[ItemIndex+1])+'(Celkovo:'+FloatToStr(mnozstvo*poleCena[ItemIndex+1])+')');
+  ListBox2.Items.Add( poleVybraneTovar[ItemIndex+1]+' Množstvo:'+IntToStr(mnozstvo)+' Cena za kus'+FloatToStr(poleVybraneCena[ItemIndex+1])+'(Celkovo:'+FloatToStr(mnozstvo*poleVybraneCena[ItemIndex+1])+')');
   ListBox2.ItemIndex:=-1;
-  Label5.caption:=FloatToStr(celkovySucet)+'$';
+  Label5.caption:=FormatFloat('0.##',(celkovySucet))+'$';
+  Label5.Font.Color:=clGreen;
+  Timer2.enabled:=true;
 
+  Vypis();
   end;
 end;
 
@@ -332,6 +455,54 @@ begin
   Label6.caption:=DateToStr(today)+' , '+TimeToStr(today);
 end;
 
+procedure TForm1.Timer2Timer(Sender: TObject);
+begin
+    Label5.Font.Color:=clBlack;
+    Timer2.enabled:=false;
+
+end;
+
+procedure TForm1.Vypis();
+var x:integer;
+begin
+  Memo1.clear();
+
+  FOR x:=1 TO pocet DO
+  begin
+  Memo1.append('Normalne hodnoty:');
+  Memo1.append('Kod:'+IntToStr(poleKod[x]));
+  Memo1.append('Mnozstvo:'+IntToStr(poleMnozstvo[x]));
+  Memo1.append('Tovar:'+poleTovar[x]);
+  Memo1.append('Cena:'+FloatToStr(poleCena[x]));
+  Memo1.append('*');
+    end;
+
+    FOR x:=1 TO pocetVybranych DO
+   begin
+   Memo1.append('selected hodnoty:');
+  Memo1.append('Kod:'+IntToStr(poleVybraneKod[x]));
+  Memo1.append('Mnozstvo:'+IntToStr(poleVybraneMnozstvo[x]));
+  Memo1.append('Tovar:'+poleVybraneTovar[x]);
+  Memo1.append('Cena:'+FloatToStr(poleVybraneCena[x]));
+  Memo1.append('---');
+   end;
+
+
+
+end;
+
+//dorobit odstanenie jednej zlozky
+
+procedure TForm1.Odsadenie(x:integer);
+var i:integer;
+begin
+  medzera:='';
+  FOR i:=1 to x DO
+  begin
+  medzera:=medzera+' ';
+  end;
+
+end;
 
 end.
 

@@ -1,11 +1,11 @@
 object Form1: TForm1
-  Left = 336
-  Height = 485
-  Top = 251
-  Width = 975
+  Left = 170
+  Height = 657
+  Top = 57
+  Width = 1155
   Caption = 'Form1'
-  ClientHeight = 485
-  ClientWidth = 975
+  ClientHeight = 657
+  ClientWidth = 1155
   OnCreate = FormCreate
   LCLVersion = '1.4.0.4'
   object ListBox1: TListBox
@@ -126,9 +126,9 @@ object Form1: TForm1
     ParentColor = False
   end
   object Memo1: TMemo
-    Left = 736
-    Height = 90
-    Top = 328
+    Left = 800
+    Height = 280
+    Top = 112
     Width = 150
     Lines.Strings = (
       'Memo1'
@@ -147,5 +147,10 @@ object Form1: TForm1
     OnTimer = Timer1Timer
     left = 249
     top = 369
+  end
+  object Timer2: TTimer
+    OnTimer = Timer2Timer
+    left = 534
+    top = 396
   end
 end
