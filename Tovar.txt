@@ -1,6 +1,10 @@
-4
+8
 100;Jablko
 101;Visna
-102;Ceresna
-103;Hruska
+200;Paradajka
+201;Paprika
+300;HotDog
+301;Chlebik
+400;Zuvacky
+401;Mobil
 
