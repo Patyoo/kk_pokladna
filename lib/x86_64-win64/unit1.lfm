@@ -1,135 +1,245 @@
 object Form1: TForm1
-  Left = 336
-  Height = 485
-  Top = 251
-  Width = 975
+  Left = 234
+  Height = 656
+  Top = 128
+  Width = 1097
   Caption = 'Form1'
-  ClientHeight = 0
-  ClientWidth = 0
+  ClientHeight = 656
+  ClientWidth = 1097
+  Color = clCream
+  Font.CharSet = ANSI_CHARSET
+  Font.Name = 'Times New Roman'
   OnCreate = FormCreate
-  LCLVersion = '1.6.4.0'
+  LCLVersion = '1.8.2.0'
   object ListBox1: TListBox
-    Left = 24
+    Left = 16
     Height = 224
     Top = 24
-    Width = 128
+    Width = 152
+    Font.CharSet = 4
+    Font.Name = 'Courier New'
+    Font.Pitch = fpFixed
     ItemHeight = 0
     OnClick = ListBox1Click
-    TabOrder = 0
+    ParentFont = False
+    TabOrder = 1
   end
   object Button1: TButton
     Left = 296
     Height = 25
-    Top = 272
-    Width = 368
+    Top = 328
+    Width = 576
     Caption = 'Tlačiť účet'
-    TabOrder = 1
-  end
-  object Button2: TButton
-    Left = 24
-    Height = 25
-    Top = 248
-    Width = 176
-    Caption = 'Vyhladať kód tovaru'
+    OnClick = Button1Click
     TabOrder = 2
   end
+  object Button2: TButton
+    Left = 16
+    Height = 25
+    Top = 248
+    Width = 152
+    Caption = 'Vyhladať kód tovaru'
+    OnClick = Button2Click
+    TabOrder = 3
+  end
   object Label1: TLabel
-    Left = 576
-    Height = 15
+    Left = 856
+    Height = 19
     Top = 8
-    Width = 92
+    Width = 108
     Caption = 'Meno Pokladnika'
     ParentColor = False
+    OnClick = Label1Click
   end
   object Label2: TLabel
     Left = 24
-    Height = 15
+    Height = 19
     Top = 8
-    Width = 77
+    Width = 91
     Caption = 'Výber potravín'
     ParentColor = False
   end
   object ListBox2: TListBox
     Left = 296
-    Height = 192
+    Height = 248
     Top = 80
-    Width = 368
+    Width = 576
+    Font.CharSet = 4
+    Font.Name = 'Courier New'
+    Font.Pitch = fpFixed
     ItemHeight = 0
     OnClick = ListBox2Click
-    TabOrder = 3
+    ParentFont = False
+    TabOrder = 0
   end
   object Button3: TButton
-    Left = 152
+    Left = 176
     Height = 25
-    Top = 40
+    Top = 32
     Width = 75
     Caption = 'Ovocie'
+    OnClick = Button3Click
     TabOrder = 4
   end
   object Button4: TButton
-    Left = 152
+    Left = 176
     Height = 25
-    Top = 80
+    Top = 64
     Width = 75
     Caption = 'Zelenina'
+    OnClick = Button4Click
     TabOrder = 5
   end
   object Button5: TButton
-    Left = 152
+    Left = 176
     Height = 25
-    Top = 120
+    Top = 96
     Width = 75
     Caption = 'Pečivo'
+    OnClick = Button5Click
     TabOrder = 6
   end
   object Button6: TButton
-    Left = 152
+    Left = 176
     Height = 25
-    Top = 160
+    Top = 128
     Width = 75
     Caption = 'Iné'
+    OnClick = Button6Click
     TabOrder = 7
   end
   object Label3: TLabel
-    Left = 552
-    Height = 15
-    Top = 312
-    Width = 33
+    Left = 784
+    Height = 19
+    Top = 357
+    Width = 38
     Caption = 'Spolu:'
     ParentColor = False
   end
   object Label4: TLabel
     Left = 296
-    Height = 15
+    Height = 19
     Top = 62
-    Width = 68
+    Width = 78
     Caption = 'Prehľad účtu'
     ParentColor = False
   end
   object Button7: TButton
-    Left = 589
+    Left = 797
     Height = 25
     Top = 56
     Width = 75
     Caption = 'Zrušiť účet'
+    OnClick = Button7Click
     TabOrder = 8
   end
   object Label5: TLabel
-    Left = 589
-    Height = 15
-    Top = 312
-    Width = 34
+    Left = 824
+    Height = 19
+    Top = 357
+    Width = 42
     Caption = 'Label5'
     ParentColor = False
   end
   object Memo1: TMemo
-    Left = 736
-    Height = 90
-    Top = 328
+    Left = 944
+    Height = 280
+    Top = 96
     Width = 150
     Lines.Strings = (
       'Memo1'
     )
     TabOrder = 9
+  end
+  object Label6: TLabel
+    Left = 856
+    Height = 19
+    Top = 24
+    Width = 42
+    Caption = 'Label6'
+    ParentColor = False
+  end
+  object Button8: TButton
+    Left = 688
+    Height = 25
+    Top = 55
+    Width = 107
+    Caption = 'Zrušiť položku'
+    OnClick = Button8Click
+    TabOrder = 10
+  end
+  object Label7: TLabel
+    Left = 97
+    Height = 18
+    Top = 318
+    Width = 48
+    Caption = 'Label7'
+    Font.CharSet = 4
+    Font.Name = 'Courier'
+    ParentColor = False
+    ParentFont = False
+  end
+  object Button9: TButton
+    Left = 176
+    Height = 25
+    Top = 160
+    Width = 75
+    Caption = 'Všetko'
+    OnClick = Button9Click
+    TabOrder = 11
+  end
+  object Label8: TLabel
+    Left = 448
+    Height = 19
+    Top = 61
+    Width = 60
+    Caption = 'Množstvo'
+    ParentColor = False
+  end
+  object Label9: TLabel
+    Left = 544
+    Height = 19
+    Top = 61
+    Width = 74
+    Caption = 'Cena za kus'
+    ParentColor = False
+  end
+  object Button10: TButton
+    Left = 176
+    Height = 25
+    Top = 192
+    Width = 75
+    Caption = 'TOP'
+    OnClick = Button10Click
+    TabOrder = 12
+  end
+  object Memo2: TMemo
+    Left = 824
+    Height = 90
+    Top = 408
+    Width = 150
+    Lines.Strings = (
+      'Memo2'
+    )
+    TabOrder = 13
+  end
+  object Button11: TButton
+    Left = 872
+    Height = 25
+    Top = 55
+    Width = 75
+    Caption = 'Reklamacia'
+    OnClick = Button11Click
+    TabOrder = 14
+  end
+  object Timer1: TTimer
+    OnTimer = Timer1Timer
+    left = 65528
+    top = 416
+  end
+  object Timer2: TTimer
+    OnTimer = Timer2Timer
+    left = 16
+    top = 504
   end
 end
