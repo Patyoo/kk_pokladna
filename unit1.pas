@@ -58,9 +58,11 @@ type
     procedure Timer1Timer(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure Vypis();
+    procedure Lock(input:String);
 
 
   private
+
     { private declarations }
   public
     { public declarations }
@@ -73,7 +75,7 @@ var
   subor,subor2:TextFile;
   celkovySucet:real;
   zrusit,reklamacia:boolean;
-  pocet,pocetVybranych,verzia:integer;
+  pocet,pocetVybranych,pocetReklamovanych,verzia,idReklamacie:integer;
   poleKod:array[1..N] of integer;
   poleMnozstvo:array[1..N] of integer;
   poleTovar:array[1..N] of String;
@@ -88,6 +90,9 @@ var
   poleVybraneMnozstvo:array[1..N] of integer;
   poleVybraneCena:array[1..N] of real;
 
+  poleMnozstvoReklamacia:array[1..N] of integer;
+  poleKodReklamacia:array[1..N] of Integer;
+
 implementation
 
 {$R *.lfm}
@@ -100,11 +105,14 @@ var i,y,pozicia,pomocna:integer;
 
 begin
 
+//pocet riadkov vsade musim davat
+
 reklamacia:=false;
 zrusit:=false;
 pocetVybranych:=0;
 verzia:=0;
 Label5.Caption:='0.00€';
+
 {AssignFile(subor2, 'STATISTIKY_'+IntToStr(verzia)+'.txt');
 Rewrite(subor2);
 DeleteFile('STATISTIKY_'+IntToStr(verzia)+'.txt');
@@ -201,7 +209,7 @@ IF MessageDlg('Ste si istý, že chcete zrušiť účet?', mtConfirmation,[mbYes
   end;
   pocetVybranych:=0;
   celkovySucet:=0;
-  Label5.caption:=FloatToStr(celkovySucet)+'$';
+  Label5.caption:=FloatToStr(celkovySucet)+' €';
   listbox2.Items.Clear();
   Label5.Font.Color:=clRed;
   Timer2.enabled:=true;
@@ -263,25 +271,78 @@ end;
 end;
 procedure TForm1.Button1Click(Sender: TObject);
 var i,y,id:integer;
-riadok,pom,pom1:string;
+riadok,pom,pom1,nazov:string;
 c:char;
-skladList: TStringList;
+skladList,StatistikyList,riadokList: TStringList;
+pocetRiadkov:integer;
 begin
 IF(pocetVybranych=0) THEN exit;
+
+{IF() THEN
+ELSE                      //na otaazku procedure
+}
+
+//musim zobrat id reklamneho nie nove id
+
 IF MessageDlg('Ste si istý, že váš nákup je dokončený?', mtConfirmation,[mbYes, mbNo], 0) = mrYes THEN
 begin
 
+//zle zapisujem do statistiky a pozor pri pocte riadkov vsade :D
+
+
+    //reklamacia ani nerobi so statictikami
+
+  IF(reklamacia=true) THEN
+  begin
+  Button1.Caption:='Tlačiť účet';
+   c:='R';
+   id:=idReklamacie;
 
 
 
+    FOR i:=1 to pocetVybranych DO
+  begin
+    FOR y:=1 to pocet DO
+    begin
 
-  skladList:=TStringList.Create;
-  skladList.LoadFromFile('Sklad.txt');
+      IF(poleKod[y]=poleVybraneKod[i]) THEN
+      begin
+
+        skladList:=TStringList.Create;
+         skladList.LoadFromFile('Sklad.txt');
+
+        pom:=IntToStr(poleKod[y])+';'+IntToStr(poleMnozstvoPovodne[y]);
+        pom1:=IntToStr(poleKod[y])+';'+IntToStr(poleMnozstvoPovodne[y]+poleVybraneMnozstvo[i]);
+
+
+
+        skladList.Text:=StringReplace(skladList.Text,pom,pom1,[rfIgnoreCase]);
+        poleMnozstvo[y]:=poleMnozstvo[y]+poleVybraneMnozstvo[i];
+        poleMnozstvoPovodne[y]:=poleMnozstvo[y];
+        skladList.SaveToFile('Sklad.txt');
+         skladList.Free;
+
+      end;
+    end;
+
+
+
+  end;
+
+  end
+
+  ELSE
+  begin
+      c:='P';
+
 
   FOR i:=1 to pocetVybranych DO
   begin
     FOR y:=1 to pocet DO
     begin
+
+       skladList:=TStringList.Create;
+       skladList.LoadFromFile('Sklad.txt');
 
       IF(poleKod[y]=poleVybraneKod[i]) THEN
       begin
@@ -303,6 +364,9 @@ begin
         skladList.Text:=StringReplace(skladList.Text,pom,pom1,[rfIgnoreCase]);
         poleMnozstvoPovodne[y]:=poleMnozstvo[y];
 
+        skladList.SaveToFile('Sklad.txt');
+         skladList.Free;
+
       end;
     end;
 
@@ -310,24 +374,42 @@ begin
 
   end;
 
-  skladList.SaveToFile('Sklad.txt');
-  skladList.Free;
+
+  end;
+
+
   Vypis();
   getDate();
-  id:=random(100000000)+1;
-  c:='P';
-  AssignFile(subor2, 'STATISTIKY_'+IntToStr(verzia)+'.txt');
-  Rewrite(subor2);
+  randomize();
+  IF(reklamacia=false) THEN id:=random(100000000)+1;
+
+   // citaj aj prepisovat() chcem prepisat pocet riadkov
+
+         // statRiadkov:= strToInt(statStrList[0]) + kupenychTovarov;
+   riadokList:=TStringList.Create;
+   riadokList.LoadFromFile('Statistiky.txt');
+   pocetRiadkov:=strToInt(riadokList[0])+pocetVybranych;
+   riadokList[0]:=intToStr(pocetRiadkov);
+   riadokList.SaveToFile('Statistiky.txt');
+   riadokList.Free;
+
+
+
+
   assignFile(subor,'Statistiky.txt');
   append(subor);
+
+
+
 
   FOR i:=1 to pocetVybranych DO
   Writeln(subor,c+';'+IntToStr(id)+';'+IntToStr(poleVybraneKod[i])+';'+IntTOStr(poleVybraneMnozstvo[i])+';'+FloatToStr(poleVybraneCena[i]* 100) +';'+CurrentTime);
   closeFile(subor);
-  closeFile(subor2);
-  DeleteFile('STATISTIKY_'+IntToStr(verzia)+'.txt');
 
-  AssignFile(subor, 'Uctenka '+IntToStr(id)+'.txt');
+  IF(reklamacia=false) THEN nazov:='Vypis uctu '
+  ELSE nazov:='Reklamne potvrdenie ';
+
+  AssignFile(subor,nazov+IntToStr(id)+'.txt');
   Rewrite(subor);
   riadok:=StringOfChar('-',25);
   riadok:=riadok+'KinderGarten';
@@ -340,13 +422,9 @@ begin
 
   For i:=1 to pocetVybranych DO
   begin
-  Memo2.append(IntToStr(i)+':'+IntToStr(poleVybraneMnozstvo[i]));
-   Memo2.append(IntToStr(i)+':'+FloatToStr(poleVybraneMnozstvo[i]*poleVybraneCena[i]));
-    Memo2.append(IntToStr(i)+':'+IntToStr(poleVybraneMnozstvo[i])+'ks  '+'x   '+FloatToStr(poleVybraneCena[i]));
-
     riadok:=IntToStr(poleVybraneMnozstvo[i])+'ks '+poleVybraneTovar[i];
     riadok:=riadok+StringOfChar(' ',50-Length(riadok));
-    riadok:=riadok+FloatToStr(poleVybraneMnozstvo[i]*poleVybraneCena[i])+'€';
+    riadok:=riadok+FloatToStr(poleVybraneMnozstvo[i]*poleVybraneCena[i])+' €';
     Writeln(subor,riadok);
     riadok:=IntToStr(poleVybraneMnozstvo[i])+'ks  '+'x   '+FloatToStr(poleVybraneCena[i])+' €';
     Writeln(subor,riadok);
@@ -354,7 +432,7 @@ begin
   end;
 
   riadok:=StringOfChar(' ',30);
-  riadok:=riadok+'Spolu: '+FloatToStr(celkovySucet)+'€';
+  riadok:=riadok+'Spolu: '+FloatToStr(celkovySucet)+' €';
   Writeln(subor,riadok);
   riadok:=StringOfChar('-',62);
   Writeln(subor,riadok);
@@ -369,11 +447,13 @@ begin
 
   pocetVybranych:=0;
   celkovySucet:=0;
-  Label5.caption:=FloatToStr(celkovySucet)+'€';
+  Label5.caption:=FloatToStr(celkovySucet)+' €';
   listbox2.Items.Clear();
 end
 
-else exit;
+ELSE exit;
+
+
  //vytlacit ucet
 end;
 procedure TForm1.Button10Click(Sender: TObject);
@@ -409,12 +489,121 @@ ELSE exit;
 end;
 
 procedure TForm1.Button11Click(Sender: TObject);
+var answer,pom,slovo,znak:string;
+success:boolean;
+i,y,id,kod,mnozstvo,cena,pocetRiadkov,pozicia:integer;
 begin
-IF(ListBox2.Items.count=0) THEN
+
+IF((reklamacia=false) AND (ListBox2.Items.count=0)) THEN
 begin
-  reklamacia:=true;
-  zrusit:=false;
+
+IF InputQuery('Zadajte prosím vaše ID účtenky','Vaše ID:',Answer) = True then
+begin
+//vynulovat listbox;
+
+pocetReklamovanych:=0;
+
+success:=TryStrToInt(Answer, idReklamacie);
+ IF not success then
+ begin
+   showmessage('Neplatné ID');
+   exit;
+ end;
+
+ Listbox1.clear;
+
+  assignFile(subor,'Statistiky.txt');
+  reset(subor);
+  readln(subor,pocetRiadkov);
+
+
+ FOR i:=1 to pocetRiadkov DO
+ begin
+
+ readln(subor,pom);
+ pozicia:=POS(';',pom);
+ znak:=COPY(pom,1,pozicia-1);
+ pom:=COPY(pom,pozicia+1,length(pom));
+
+ pozicia:=POS(';',pom);
+ id:=StrToInt(COPY(pom,1,pozicia-1));
+ pom:=COPY(pom,pozicia+1,length(pom));
+
+  pozicia:=POS(';',pom);
+  kod:=StrToInt(COPY(pom,1,pozicia-1));
+  pom:=COPY(pom,pozicia+1,length(pom));
+
+  pozicia:=POS(';',pom);
+  mnozstvo:=StrToInt(COPY(pom,1,pozicia-1));
+  pom:=COPY(pom,pozicia+1,length(pom));
+
+  pozicia:=POS(';',pom);
+  cena:=StrToInt(COPY(pom,1,pozicia-1));
+  //vymazat
+  IF(idReklamacie=id) THEN
+  begin
+
+  inc(pocetReklamovanych);
+  poleMnozstvoReklamacia[pocetReklamovanych]:=mnozstvo;
+  poleKodReklamacia[pocetReklamovanych]:=kod;
+
+  FOR y:=1 to pocet DO
+  begin
+    IF(poleKod[y]=kod) THEN
+    begin
+
+
+  IF((poleAktivita[y])=0)THEN slovo:=poleTovar[y]+'*'
+  ELSE slovo:=poleTovar[y];
+  slovo:=slovo+StringOfChar(' ',10-Length(slovo));
+  slovo:=slovo+IntToStr(poleKod[y]);
+  ListBox1.Items.Add(slovo);
+
+
+  end;
+
+
+
+
+  end;
+
+
+
+ end;
+
+ end;
+ CloseFile(subor);
+
+
+
+
+end
+
+ELSE exit;
+
+
+
+
+reklamacia:=true;
+zrusit:=false;
+Button1.Caption:='Potvrdiť reklamáciu';
+
+
+
+
+end
+
+
+ELSE
+begin
+  reklamacia:=false;
+  Button1.Caption:='Tlačiť účet';
 end;
+
+
+
+
+
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
@@ -427,8 +616,6 @@ najdene:=false;
 opakovane:=false;
 IF InputQuery('Zadajte prosím hladaný kód tovaru','Váš kód:',Answer) = True then
 begin
-
-
 
   success:=TryStrToInt(Answer, hladanyKod);
   IF not success then
@@ -483,14 +670,12 @@ begin
 
         pom1:=IntToStr(poleKod[pom])+';'+IntToStr(poleMnozstvoPovodne[pom]);
         pom2:=IntToStr(poleKod[pom])+';'+IntToStr(poleVybraneMnozstvo[pom]);
-        Memo2.append('pom1:'+pom1+',pom2:'+pom2+'*');
         skladList.Text:=StringReplace(skladList.Text,pom1,pom2,[rfIgnoreCase]);
         skladList.SaveToFile('Sklad.txt');
         skladList.Free;
 
          poleMnozstvoPovodne[pom]:= poleMnozstvoPovodne[pom]+mnozstvo;
          poleMnozstvo[pom]:=poleMnozstvo[pom]+mnozstvo;
-
 
               riadok:=poleVybraneTovar[pom];
               riadok:=riadok+StringOfChar(' ',15-Length(riadok));
@@ -500,7 +685,7 @@ begin
               riadok:=riadok+StringOfChar(' ',50-Length(riadok));
               riadok:=riadok+FloatToStr(poleVybraneMnozstvo[pom]*poleVybraneCena[pom]);
               ListBox2.Items[pom-1] := riadok;
-              Label5.caption:=FormatFloat('0.##',(celkovySucet))+'€';
+              Label5.caption:=FormatFloat('0.##',(celkovySucet))+' €';
               Label5.Font.Color:=clGreen;
               Timer2.enabled:=true;
             end
@@ -513,17 +698,16 @@ begin
             poleVybraneTovar[pocetVybranych]:=poleTovar[i];
             poleVybraneMnozstvo[pocetVybranych]:=mnozstvo;            //poleMnozstvo[i];
             poleVybraneCena[pocetVybranych]:=poleCena[i];
-            Label5.caption:=FormatFloat('0.##',(celkovySucet))+'€';
+            Label5.caption:=FormatFloat('0.##',(celkovySucet))+' €';
             IF(poleMnozstvo[i]<mnozstvo) THEN
             begin
 
-            //poleVybraneMnozstvo[i]:=poleVybraneMnozstvo[i]+mnozstvo;
+
              skladList:=TStringList.Create;
              skladList.LoadFromFile('Sklad.txt');
 
              pom1:=IntToStr(poleKod[i])+';'+IntToStr(poleMnozstvo[i]);
              pom2:=IntToStr(poleKod[i])+';'+IntToStr(mnozstvo);
-              Memo2.append('pom1:'+pom1+',pom2:'+pom2+'*');
               skladList.Text:=StringReplace(skladList.Text,pom1,pom2,[rfIgnoreCase]);
               skladList.SaveToFile('Sklad.txt');
               skladList.Free;
@@ -533,97 +717,21 @@ begin
 
             end;
 
-
-
-        // poleMnozstvoPovodne[i]:= poleMnozstvoPovodne[i]+mnozstvo;
-         //poleMnozstvo[i]:=poleMnozstvo[i]+mnozstvo;
-
             riadok:=poleTovar[i];
             riadok:=riadok+StringOfChar(' ',15-Length(riadok));
             riadok:=riadok+IntToStr(mnozstvo);
             riadok:=riadok+StringOfChar(' ',25-Length(riadok));
-            riadok:=riadok+FloatToStr(poleCena[i]);
+            riadok:=riadok+FloatToStr(poleCena[i])+' €';
             riadok:=riadok+StringOfChar(' ',50-Length(riadok));
-            riadok:=riadok+FloatToStr(mnozstvo*poleCena[i]);
+            riadok:=riadok+FloatToStr(mnozstvo*poleCena[i])+' €';
 
             ListBox2.Items.Add(riadok);
             Label5.Font.Color:=clGreen;
             Timer2.enabled:=true;
             exit;
             end;
-
-
-
-{
-        ELSE
-        begin
-
-        FOR y:=1 to pocetVybranych DO
-        IF(poleVybraneKod[y]=hladanyKod) THEN
-        begin
-          opakovane:=true;
-          pom:=y;
         end;
-        celkovySucet:=celkovySucet+(mnozstvo*poleCena[i]);
- }  //toto budem POTREBOVAT
-        {IF(opakovane=true) THEN
-        begin
-          poleVybraneMnozstvo[pom]:=poleVybraneMnozstvo[pom]+mnozstvo;
-          //
-
-          skladList:=TStringList.Create;
-          skladList.LoadFromFile('Sklad.txt');
-
-        pom1:=IntToStr(poleKod[pom])+';'+IntToStr(poleMnozstvoPovodne[pom]);
-        pom2:=IntToStr(poleKod[pom])+';'+IntToStr( poleVybraneMnozstvo[pom]);
-        Memo2.append('pom1:'+pom1+',pom2:'+pom2+'*');
-        skladList.Text:=StringReplace(skladList.Text,pom1,pom2,[rfIgnoreCase]);
-        skladList.SaveToFile('Sklad.txt');
-        skladList.Free;
-
-         poleMnozstvoPovodne[pom]:= poleMnozstvoPovodne[pom]+mnozstvo;
-         poleMnozstvo[pom]:=poleMnozstvo[pom]+mnozstvo;
-
-
-          riadok:=poleVybraneTovar[pom];
-          riadok:=riadok+StringOfChar(' ',15-Length(riadok));
-          riadok:=riadok+IntToStr(poleVybraneMnozstvo[pom]);
-          riadok:=riadok+StringOfChar(' ',25-Length(riadok));
-          riadok:=riadok+FloatToStr(poleVybraneCena[pom]);
-          riadok:=riadok+StringOfChar(' ',50-Length(riadok));
-          riadok:=riadok+FloatToStr(poleVybraneMnozstvo[pom]*poleVybraneCena[pom]);
-
-          ListBox2.Items[pom-1] := riadok;
-          Label5.caption:=FormatFloat('0.##',(celkovySucet))+'€';
-          Label5.Font.Color:=clGreen;
-          Timer2.enabled:=true;
-        end }
-
-        {else
-        begin
-          inc(pocetVybranych);
-          poleVybraneKod[pocetVybranych]:=poleKod[i];
-          poleVybraneTovar[pocetVybranych]:=poleTovar[i];
-          poleVybraneMnozstvo[pocetVybranych]:=poleMnozstvo[i];
-          poleVybraneCena[pocetVybranych]:=poleCena[i];
-          Label5.caption:=FormatFloat('0.##',(celkovySucet))+'€';
-          poleMnozstvo[i]:=mnozstvo;
-
-          riadok:=poleTovar[i];
-          riadok:=riadok+StringOfChar(' ',15-Length(riadok));
-          riadok:=riadok+IntToStr(mnozstvo);
-          riadok:=riadok+StringOfChar(' ',25-Length(riadok));
-          riadok:=riadok+FloatToStr(poleCena[i]);
-          riadok:=riadok+StringOfChar(' ',50-Length(riadok));
-          riadok:=riadok+FloatToStr(mnozstvo*poleCena[i]);
-
-          ListBox2.Items.Add(riadok);
-          Label5.Font.Color:=clGreen;
-          Timer2.enabled:=true;
-          exit;
-        end; }
-        end;
-      end     //
+      end
       ELSE exit;
     end;
   end;
@@ -634,9 +742,9 @@ begin
     exit;
   end;
 
-  // TIEZ BUDEM POTREBOVATend
 
-  //Ked je neaktivny tovar
+
+
 end;
 
 procedure TForm1.Button3Click(Sender: TObject);
@@ -725,7 +833,7 @@ ELSE exit;
 end;
 
 procedure TForm1.ListBox1Click(Sender: TObject);
-var ItemIndex,mnozstvo,i,pom,pozicia,index:integer;
+var ItemIndex,mnozstvo,i,pom,pozicia,index,kodik,indexReklama:integer;
 answer,slovo,riadok,pom1,pom2:string;
 opakovane,success:boolean;
 skladList: TStringList;
@@ -738,10 +846,15 @@ IF((ListBox1.Items.count>0) AND (ItemIndex > -1)) THEN
 begin
 
   slovo:=ListBox1.Items[ItemIndex];
+  kodik:=StrToInt(COPY(slovo,length(slovo)-2,length(slovo)));
+
   pozicia:=POS(' ',slovo);
   slovo:=COPY(slovo,1,pozicia-1);
   IF( (POS('*',slovo)<>0) ) THEN slovo:=COPY(slovo,0,length(slovo)-1);
   FOR i:=1 TO pocet DO IF(poleTovar[i]=slovo) THEN index:=i;
+
+
+
 
   IF(poleAktivita[index]=0) THEN
   begin
@@ -773,54 +886,65 @@ begin
         pom:=i;
       end;
 
-      IF(opakovane=true) THEN
+      IF((opakovane=true) AND (reklamacia=false)) THEN
       begin
         poleVybraneMnozstvo[pom]:=poleVybraneMnozstvo[pom]+mnozstvo;
 
-             skladList:=TStringList.Create;
-             skladList.LoadFromFile('Sklad.txt');
+
+        IF(poleMnozstvoPovodne[pom]<poleVybraneMnozstvo[pom]) THEN          //neviem ci to je spravne
+         begin
+
+           skladList:=TStringList.Create;
+           skladList.LoadFromFile('Sklad.txt');
+
 
         pom1:=IntToStr(poleKod[pom])+';'+IntToStr(poleMnozstvoPovodne[pom]);
         pom2:=IntToStr(poleKod[pom])+';'+IntToStr( poleVybraneMnozstvo[pom]);
-        Memo2.append('pom1:'+pom1+',pom2:'+pom2+'*');
         skladList.Text:=StringReplace(skladList.Text,pom1,pom2,[rfIgnoreCase]);
         skladList.SaveToFile('Sklad.txt');
         skladList.Free;
 
+           end;
+
          poleMnozstvoPovodne[pom]:= poleMnozstvoPovodne[pom]+mnozstvo;
          poleMnozstvo[pom]:=poleMnozstvo[pom]+mnozstvo;
+
+
 
 
         riadok:=poleVybraneTovar[pom];
         riadok:=riadok+StringOfChar(' ',15-Length(riadok));
         riadok:=riadok+IntToStr(poleVybraneMnozstvo[pom]);
         riadok:=riadok+StringOfChar(' ',25-Length(riadok));
-        riadok:=riadok+FloatToStr(poleVybraneCena[pom]);
+        riadok:=riadok+FloatToStr(poleVybraneCena[pom])+ '€';
         riadok:=riadok+StringOfChar(' ',50-Length(riadok));
-        riadok:=riadok+FloatToStr(poleVybraneMnozstvo[pom]*poleVybraneCena[pom]);
+        riadok:=riadok+FloatToStr(poleVybraneMnozstvo[pom]*poleVybraneCena[pom])+' €';
 
         ListBox2.Items[pom-1] :=riadok;
         celkovySucet:=celkovySucet+(mnozstvo*poleVybraneCena[pom]);
-        Label5.caption:=FormatFloat('0.##',(celkovySucet))+'€';
+        Label5.caption:=FormatFloat('0.##',(celkovySucet))+' €';
         Label5.Font.Color:=clGreen;
         Timer2.enabled:=true;
       end
 
       ELSE
       begin
-        FOR i:=1 TO pocet DO IF(poleTovar[i]=slovo) THEN index:=i;
+
+      IF((opakovane=false) AND (reklamacia=false)) THEN
+       begin
+          FOR i:=1 TO pocet DO IF(poleTovar[i]=slovo) THEN index:=i;
         celkovySucet:=celkovySucet+(mnozstvo*poleCena[index]);
 
         //
         IF(poleMnozstvo[index]<mnozstvo) THEN
          begin
 
-    skladList:=TStringList.Create;
-    skladList.LoadFromFile('Sklad.txt');
+
+         skladList:=TStringList.Create;
+         skladList.LoadFromFile('Sklad.txt');
 
         pom1:=IntToStr(poleKod[index])+';'+IntToStr(poleMnozstvo[index]);
         pom2:=IntToStr(poleKod[index])+';'+IntToStr(mnozstvo);
-        Memo2.append('pom1:'+pom1+',pom2:'+pom2);
         skladList.Text:=StringReplace(skladList.Text,pom1,pom2,[rfIgnoreCase]);
         skladList.SaveToFile('Sklad.txt');
         skladList.Free;
@@ -831,15 +955,15 @@ begin
         //
 
         poleMnozstvo[index]:= poleMnozstvo[index]-mnozstvo;         //davam dole mnozstvo,neviem ci to treba
-        Label5.caption:=FormatFloat('0.##',(celkovySucet))+'€';
+        Label5.caption:=FormatFloat('0.##',(celkovySucet))+' €';
 
         riadok:=poleTovar[index];
         riadok:=riadok+StringOfChar(' ',15-Length(riadok));
         riadok:=riadok+IntToStr(mnozstvo);
         riadok:=riadok+StringOfChar(' ',25-Length(riadok));
-        riadok:=riadok+FloatToStr(poleCena[index]);
+        riadok:=riadok+FloatToStr(poleCena[index])+' €';
         riadok:=riadok+StringOfChar(' ',50-Length(riadok));
-        riadok:=riadok+FloatToStr(mnozstvo*poleCena[index]);
+        riadok:=riadok+FloatToStr(mnozstvo*poleCena[index])+' €';
         ListBox2.Items.Add(riadok);
 
         inc(pocetVybranych);
@@ -850,6 +974,61 @@ begin
         Memo1.append(IntToStr(poleVybraneKod[pocetVybranych])+' '+IntToStr(poleVybraneMnozstvo[pocetVybranych])+' '+FloatToStr(poleVybraneCena[pocetVybranych]));
         Label5.Font.Color:=clGreen;
         Timer2.enabled:=true;
+
+       end
+      ELSE
+      begin
+
+
+      FOR i:=1 TO pocetReklamovanych DO IF(poleKodReklamacia[i]=kodik) THEN indexReklama:=i;
+
+
+          IF(poleMnozstvoReklamacia[indexReklama]<mnozstvo) THEN
+         begin
+           showmessage('Neplatné množstvo,too much');
+           exit;
+         end;
+
+
+
+
+           FOR i:=1 TO pocet DO IF(poleTovar[i]=slovo) THEN index:=i;
+        celkovySucet:=celkovySucet+(mnozstvo*poleCena[index]);
+
+        //poleMnozstvo[index]:= poleMnozstvo[index]+mnozstvo;                       //mozno toto robim uz v tlacit ucet
+       // poleMnozstvoPovodne[index]:=poleMnozstvoPovodne[index]+mnozstvo;
+        Label5.caption:=FormatFloat('0.##',(celkovySucet))+' €';
+
+        riadok:=poleTovar[index];
+        riadok:=riadok+StringOfChar(' ',15-Length(riadok));
+        riadok:=riadok+IntToStr(mnozstvo);
+        riadok:=riadok+StringOfChar(' ',25-Length(riadok));
+        riadok:=riadok+FloatToStr(poleCena[index])+' €';
+        riadok:=riadok+StringOfChar(' ',50-Length(riadok));
+        riadok:=riadok+FloatToStr(mnozstvo*poleCena[index])+' €';
+        ListBox2.Items.Add(riadok);
+
+        inc(pocetVybranych);
+        poleVybraneKod[pocetVybranych]:=poleKod[index];
+        poleVybraneTovar[pocetVybranych]:=poleTovar[index];
+        poleVybraneMnozstvo[pocetVybranych]:=mnozstvo;
+        poleVybraneCena[pocetVybranych]:=poleCena[index];
+        Memo1.append(IntToStr(poleVybraneKod[pocetVybranych])+' '+IntToStr(poleVybraneMnozstvo[pocetVybranych])+' '+FloatToStr(poleVybraneCena[pocetVybranych]));
+        Label5.Font.Color:=clGreen;
+        Timer2.enabled:=true;
+
+
+
+
+
+
+
+
+
+
+
+
+       end;
       end;
 end;
 
@@ -880,9 +1059,7 @@ begin
   end
   ELSE exit;
 
-
   ItemIndex := ListBox2.ItemIndex;
-
   slovo:=ListBox2.Items[ItemIndex];
   pozicia:=POS(' ',slovo);
   slovo:=COPY(slovo,1,pozicia-1);
@@ -911,7 +1088,6 @@ begin
 
         pom:=IntToStr(poleKod[y])+';'+IntToStr(poleMnozstvo[y]);
         pom1:=IntToStr(poleKod[y])+';'+IntToStr(mnozstvo);
-        Memo2.append('pom:'+pom+',pom1:'+pom1);
         skladList.Text:=StringReplace(skladList.Text,pom,pom1,[rfIgnoreCase]);
         skladList.SaveToFile('Sklad.txt');
         skladList.Free;
@@ -933,13 +1109,13 @@ begin
   riadok:=riadok+StringOfChar(' ',15-Length(riadok));
   riadok:=riadok+IntToStr(mnozstvo);
   riadok:=riadok+StringOfChar(' ',25-Length(riadok));
-  riadok:=riadok+FloatToStr(poleVybraneCena[ItemIndex+1]);
+  riadok:=riadok+FloatToStr(poleVybraneCena[ItemIndex+1])+' €';
   riadok:=riadok+StringOfChar(' ',50-Length(riadok));
-  riadok:=riadok+FloatToStr(mnozstvo*poleVybraneCena[ItemIndex+1]);
+  riadok:=riadok+FloatToStr(mnozstvo*poleVybraneCena[ItemIndex+1])+' €';
   ListBox2.Items.Add(riadok);
 
   ListBox2.ItemIndex:=-1;
-  Label5.caption:=FormatFloat('0.##',(celkovySucet))+'€';
+  Label5.caption:=FormatFloat('0.##',(celkovySucet))+' €';
   Label5.Font.Color:=clGreen;
   Timer2.enabled:=true;
  Vypis();
@@ -955,7 +1131,7 @@ begin
   IF MessageDlg('Ste si istý, že chcete zrušiť '+poleVybraneTovar[i]+'?', mtConfirmation,[mbYes, mbNo], 0) = mrYes THEN
   begin
     celkovySucet:=celkovySucet-(poleVybraneMnozstvo[ItemIndex+1]*poleVybraneCena[ItemIndex+1]);
-    Label5.caption:=FormatFloat('0.##',(celkovySucet))+'€';
+    Label5.caption:=FormatFloat('0.##',(celkovySucet))+' €';
 
   slovo:=ListBox2.Items[ItemIndex];
   pozicia:=POS(' ',slovo);
@@ -975,9 +1151,9 @@ begin
       riadok:=riadok+StringOfChar(' ',15-Length(riadok));
       riadok:=riadok+IntToStr(poleVybraneMnozstvo[i]);
       riadok:=riadok+StringOfChar(' ',25-Length(riadok));
-      riadok:=riadok+FloatToStr(poleVybraneCena[i]);
+      riadok:=riadok+FloatToStr(poleVybraneCena[i])+' €';
       riadok:=riadok+StringOfChar(' ',50-Length(riadok));
-      riadok:=riadok+FloatToStr(poleVybraneMnozstvo[i]*poleVybraneCena[i]);
+      riadok:=riadok+FloatToStr(poleVybraneMnozstvo[i]*poleVybraneCena[i])+' €';
       ListBox2.Items[i-1]:=riadok;
     end;
 
@@ -1036,6 +1212,18 @@ begin
   Memo1.append('Cena:'+FloatToStr(poleVybraneCena[x]));
   Memo1.append('---');
 end;
+
+end;
+
+// id transkacie
+//kontrolovat ci ma id spravne
+//pri kontrole vylistovat iba tovary ktore kupil
+
+
+procedure TForm1.Lock(input:String);
+begin
+
+
 
 end;
 

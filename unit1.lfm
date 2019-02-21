@@ -1,11 +1,11 @@
 object Form1: TForm1
-  Left = 167
+  Left = 98
   Height = 656
-  Top = 128
-  Width = 1097
+  Top = 289
+  Width = 1008
   Caption = 'Form1'
-  ClientHeight = 0
-  ClientWidth = 0
+  ClientHeight = 656
+  ClientWidth = 1008
   Color = clCream
   Font.CharSet = ANSI_CHARSET
   Font.Name = 'Times New Roman'
@@ -27,7 +27,7 @@ object Form1: TForm1
   object Button1: TButton
     Left = 296
     Height = 25
-    Top = 328
+    Top = 376
     Width = 576
     Caption = 'Tlačiť účet'
     OnClick = Button1Click
@@ -111,7 +111,7 @@ object Form1: TForm1
   object Label3: TLabel
     Left = 784
     Height = 19
-    Top = 357
+    Top = 328
     Width = 38
     Caption = 'Spolu:'
     ParentColor = False
@@ -134,9 +134,9 @@ object Form1: TForm1
     TabOrder = 8
   end
   object Label5: TLabel
-    Left = 824
+    Left = 830
     Height = 19
-    Top = 357
+    Top = 328
     Width = 42
     Caption = 'Label5'
     ParentColor = False
